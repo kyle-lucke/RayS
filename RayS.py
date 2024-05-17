@@ -1,10 +1,10 @@
 import numpy as np
 import torch
-from pgbar import progress_bar
+# from pgbar import progress_bar
 
 
 class RayS(object):
-    def __init__(self, model, epsilon=0.031, order=np.inf):
+    def __init__(self, model, device, epsilon=0.031, order=np.inf):
         self.model = model
         self.ord = order
         self.epsilon = epsilon
@@ -13,6 +13,8 @@ class RayS(object):
         self.x_final = None
         self.queries = None
 
+        self.device = device
+        
     def get_xadv(self, x, v, d, lb=0., ub=1.):
         if isinstance(d, int):
             d = torch.tensor(d).repeat(len(x)).cuda()
@@ -31,9 +33,9 @@ class RayS(object):
             np.random.seed(seed)
 
         # init variables
-        self.queries = torch.zeros_like(y).cuda()
-        self.sgn_t = torch.sign(torch.ones(shape)).cuda()
-        self.d_t = torch.ones_like(y).float().fill_(float("Inf")).cuda()
+        self.queries = torch.zeros_like(y).to(self.device)
+        self.sgn_t = torch.sign(torch.ones(shape)).to(self.device)
+        self.d_t = torch.ones_like(y).float().fill_(float("Inf")).to(self.device)
         working_ind = (self.d_t > self.epsilon).nonzero().flatten()
 
         stop_queries = self.queries.clone()
@@ -67,7 +69,7 @@ class RayS(object):
                 print('out of queries')
                 break
 
-            progress_bar(torch.min(self.queries.float()), query_limit,
+            print(torch.min(self.queries.float()).item(), query_limit,
                          'd_t: %.4f | adbd: %.4f | queries: %.4f | rob acc: %.4f | iter: %d'
                          % (torch.mean(self.d_t), torch.mean(dist), torch.mean(self.queries.float()),
                             len(working_ind) / len(x), i + 1))
@@ -89,7 +91,7 @@ class RayS(object):
         sgn_norm = torch.norm(sgn.view(len(x), -1), 2, 1)
         sgn_unit = sgn / sgn_norm.view(len(x), 1, 1, 1)
 
-        d_start = torch.zeros_like(y).float().cuda()
+        d_start = torch.zeros_like(y).float().to(self.device)
         d_end = self.d_t.clone()
 
         initial_succ_mask = self.search_succ(self.get_xadv(x, sgn_unit, self.d_t), y, target, valid_mask)
@@ -109,5 +111,5 @@ class RayS(object):
             self.x_final[to_update_ind] = self.get_xadv(x, sgn_unit, d_end)[to_update_ind]
             self.sgn_t[to_update_ind] = sgn[to_update_ind]
 
-    def __call__(self, data, label, target=None, query_limit=10000):
-        return self.attack_hard_label(data, label, target=target, query_limit=query_limit)
+    def __call__(self, data, label, target=None, seed=None, query_limit=10000):
+        return self.attack_hard_label(data, label, target=target, seed=seed, query_limit=query_limit)
