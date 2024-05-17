@@ -1,3 +1,5 @@
+I AM NOT THE ORIGINAL AUTHOR. I forked this repository for academic research use.  
+
 # RayS: A Ray Searching Method for Hard-label Adversarial Attack (KDD2020)
 "RayS: A Ray Searching Method for Hard-label Adversarial Attack"\
 *[Jinghui Chen](https://jinghuichen.github.io)*, *[Quanquan Gu](http://web.cs.ucla.edu/~qgu/)*\
