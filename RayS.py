@@ -67,12 +67,13 @@ class RayS(object):
 
             if torch.sum(self.queries >= query_limit) == shape[0]:
                 print('out of queries')
+                print()
                 break
 
-            print(torch.min(self.queries.float()).item(), query_limit,
-                         'd_t: %.4f | adbd: %.4f | queries: %.4f | rob acc: %.4f | iter: %d'
-                         % (torch.mean(self.d_t), torch.mean(dist), torch.mean(self.queries.float()),
-                            len(working_ind) / len(x), i + 1))
+            # print(torch.min(self.queries.float()).item(), query_limit,
+            #              'd_t: %.4f | adbd: %.4f | queries: %.4f | rob acc: %.4f | iter: %d'
+            #              % (torch.mean(self.d_t), torch.mean(dist), torch.mean(self.queries.float()),
+            #                 len(working_ind) / len(x), i + 1))
  
 
         stop_queries = torch.clamp(stop_queries, 0, query_limit)
